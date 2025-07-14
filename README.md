@@ -1,13 +1,14 @@
 # http-streamer
 
-Minimal Go server that streams terminal command output to the browser using Server-Sent Events (SSE).
+Minimal Go server that streams terminal or HTTP output to the browser using Server-Sent Events (SSE).
 
 ## Features
 
-- Runs a shell command (`ping google.com`) and streams stdout to clients
-- Uses raw `net/http` and `text/event-stream` (no frameworks, no magic)
+- Streams HTTP response from `https://httpbin.org/html` line by line
+- Uses raw `net/http`, `http.Get`, `bufio.Scanner`, and `http.Flusher`
 - HTML frontend uses native EventSource API for real-time display
-- Built with `os/exec`, `bufio`, and `http.Flusher`
+- Static styles served from `/static/styles.css`
+- No frameworks, no magic — just standard lib
 
 ## Install
 
@@ -16,24 +17,37 @@ git clone https://github.com/LeeFred3042U/http-streamer
 cd http-streamer
 go run main.go
 ```
+
 ---
+
 ## Usage
+
 - Visit http://localhost:3000
 
-- You’ll see ping output streamed live as data: events
-- Frontend appends each message to <p id="resp">...</p>
-```go
-fmt.Fprintf(w, "data: %s\n\n", line)
+- You’ll see a clean stream of an HTTP response like but messier:
+
+```html
+<title>Herman Melville - Moby-Dick</title>
+<p>Call me Ishmael...</p>
 ```
+
+- Output scrolls in real time as each line is received from the response body
+
 ---
+
 ## TODO
-- Replace ping with any arbitrary command (e.g. traceroute, curl, top)
 
-- Replace ping with user-defined command input
+- Replace hardcoded URL with user-defined query param (/events?target=...)
 
-- Add web form to submit commands
+- Add web form to submit URL or command from frontend
 
 - Support ANSI-colored output (parse and style in browser)
 
-- Handle disconnects / retries client-side
+- Add client disconnect/retry logic
+---
+
+## License
+
+MIT
+
 ---
