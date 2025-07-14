@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typer</title>
+</head>
+<body>
+    <h2>Real-Time Response</h2>
+    <p id="resp"></p>
+
+    <script>
+        const sse = new EventSource('/events');
+        const resp = document.getElementById('resp');
+
+        sse.onmessage = function (event) {
+            resp.textContent += event.data + ' ';
+        };
+
+        sse.onerror = function (err) {
+            console.error("SSE error:", err);
+            sse.close(); // optional: auto-disconnect on error
+        };
+    </script>
+</body>
+</html>
+ 
