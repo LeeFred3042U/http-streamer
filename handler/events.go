@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// Events is a handler that fetches an external URL and 
+// streams its content line-by-line to the client
 func Events(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -18,11 +20,11 @@ func Events(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// [ADDED] channel for line streaming
 	lines := make(chan string)
 
-	// [ADDED] Goroutine to fetch + scan lines concurrently
 	go func() {
+		defer close(lines)
+
 		resp, err := http.Get("https://httpbin.org/html")
 		if err != nil {
 			lines <- fmt.Sprintf("[error] %s", err.Error())
@@ -33,6 +35,7 @@ func Events(w http.ResponseWriter, r *http.Request) {
 
 		scanner := bufio.NewScanner(resp.Body)
 		for scanner.Scan() {
+			// send each scaned line to channel
 			lines <- scanner.Text()
 			time.Sleep(100 * time.Millisecond)
 		}
@@ -42,7 +45,7 @@ func Events(w http.ResponseWriter, r *http.Request) {
 		close(lines)
 	}()
 
-	// [MODIFIED] send from channel to client
+	// loop and read from channel
 	for line := range lines {
 		fmt.Fprintf(w, "data: %s\n\n", line)
 		flusher.Flush()

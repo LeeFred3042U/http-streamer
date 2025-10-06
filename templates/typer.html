@@ -2,28 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Stream</title>
+    <title>Go Streamer</title>
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-    <h2>Live HTML stream from Google.com</h2>
+    <h2>Go HTTP Streamer</h2>
+    <div id="controls">
+        <button onclick="startStream('/events')">Stream from httpbin (High-Level)</button>
+        <button onclick="startStream('/socket')">Stream from Google (Low-Level Socket)</button>
+        <button onclick="startFetch('/fetch')">Fetch from Google (No Stream)</button>
+        <button onclick="stopStream()">Stop Stream</button>
+    </div>
     <div id="resp"></div>
 
     <script>
-        const sse = new EventSource('/events');
         const resp = document.getElementById('resp');
+        let sse;
 
-        sse.onmessage = function (event) {
-        resp.textContent += event.data + '\n';
-        resp.scrollTop = resp.scrollHeight; // auto-scroll
-        };
+        // startstream starts a new Server-Sent Events stream
+        function startStream(url) {
+            stopStream();
+            resp.textContent = 'Connecting to stream...\n';
+            
+            sse = new EventSource(url);
 
-        sse.onerror = function (err) {
-        console.error("SSE error:", err);
-        sse.close();
-        };
+            // This event listener is called every time the server sends a "data" message
+            sse.onmessage = function (event) {
+                if (resp.textContent.startsWith('Connecting to stream...')) {
+                    resp.textContent = '';
+                }
+                // Append the new data from the server to our display div
+                resp.textContent += event.data + '\n';
+                // Automatically scroll the div to the bottom to show the latest content
+                resp.scrollTop = resp.scrollHeight;
+            };
+
+            sse.onerror = function () {
+                resp.textContent += '\n[STREAM ERROR OR CONNECTION CLOSED]\n';
+                sse.close(); // Close the connection.
+            };
+        }
+        
+        // Function for the non-streaming fetch, using modern async/await syntax
+        async function startFetch(url) {
+            stopStream();
+            resp.textContent = 'Fetching all data at once...';
+            try {
+                // 'await' pauses the function until the entire response is downloaded
+                const response = await fetch(url);
+                const text = await response.text();
+                resp.textContent = text;
+            } catch (err) {
+                resp.textContent = `[FETCH FAILED]: ${err}`;
+            }
+            resp.scrollTop = resp.scrollHeight;
+        }
+
+        // stopStream manually stop an active SSE stream
+        function stopStream() {
+            if (sse) {
+                sse.close();
+                sse = null;
+                resp.textContent += '\n[STREAM MANUALLY STOPPED]\n';
+            }
+        }
     </script>
 </body>
 </html>
- 

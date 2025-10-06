@@ -6,7 +6,7 @@ import (
 )
 
 func Fetch(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get("https://www.google.com")
+	resp, err := http.Get("http://www.google.com/")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
