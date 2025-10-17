@@ -10,6 +10,7 @@ func NewRouter() *http.ServeMux {
     mux.HandleFunc("/events", Events)
     mux.HandleFunc("/fetch", Fetch)
     mux.HandleFunc("/socket", SocketStream)
+    mux.HandleFunc("/ws", WebSocketHandler)
 
     // Serve static files
     staticHandler := http.FileServer(http.Dir("static"))
